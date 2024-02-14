@@ -17,7 +17,7 @@ class Cliente(models.Model):
 class Transacao(models.Model):
     cliente = models.ForeignKey(Cliente, on_delete=models.CASCADE)
     tipo = models.CharField(max_length=1, choices=TIPO_CHOICE)
-    valor = models.IntegerField()
+    valor = models.PositiveIntegerField()
     descricao = models.CharField(max_length=10)
     realizada_em = models.DateTimeField(default=timezone.now)
 

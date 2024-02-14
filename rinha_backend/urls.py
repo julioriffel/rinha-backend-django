@@ -21,8 +21,11 @@ Including another URLconf
 #
 
 # from django.contrib import admin
-from django.urls import path
+from django.urls import path, include
+
+from conta_corrente.url import router_api_v0
 
 urlpatterns = [
-    #    path('admin/', admin.site.urls),
+    path('', include((router_api_v0.urls, 'apiv0'), namespace='apiv0'), name='apiv0'),
+
 ]

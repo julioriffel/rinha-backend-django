@@ -21,7 +21,6 @@ from pathlib import Path
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
 
-
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/5.0/howto/deployment/checklist/
 
@@ -31,8 +30,12 @@ SECRET_KEY = 'django-insecure-v5fw_k!z9tu&20@ciw*^m%%5)7%m0tynb^4hgx3wd4j3nvmjzh
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = ['*']
 
+import os
+
+DATABASE_HOST = os.getenv('DATABASE_HOST')
+REDIS_HOST = os.getenv('REDIS_HOST')
 
 # Application definition
 
@@ -43,6 +46,7 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'conta_corrente.apps.ContaCorrenteConfig',
+    'rest_framework',
 ]
 
 MIDDLEWARE = [
@@ -76,17 +80,26 @@ TEMPLATES = [
 
 WSGI_APPLICATION = 'rinha_backend.wsgi.application'
 
-
 # Database
 # https://docs.djangoproject.com/en/5.0/ref/settings/#databases
 
+# DATABASES = {
+#     'default': {
+#         'ENGINE': 'django.db.backends.sqlite3',
+#         'NAME': BASE_DIR / 'db.sqlite3',
+#     }
+# }
 DATABASES = {
     'default': {
-        'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': BASE_DIR / 'db.sqlite3',
-    }
+        "ENGINE": "django.db.backends.postgresql",
+        'OPTIONS': {'options': f'-c search_path=public'},
+        'NAME': 'rinha',
+        'USER': 'admin',
+        'PASSWORD': '123',
+        'HOST': DATABASE_HOST,
+        'PORT': 5432,
+    },
 }
-
 
 # Password validation
 # https://docs.djangoproject.com/en/5.0/ref/settings/#auth-password-validators
@@ -106,7 +119,6 @@ AUTH_PASSWORD_VALIDATORS = [
     },
 ]
 
-
 # Internationalization
 # https://docs.djangoproject.com/en/5.0/topics/i18n/
 
@@ -118,7 +130,6 @@ USE_I18N = True
 
 USE_TZ = True
 
-
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/5.0/howto/static-files/
 
@@ -128,3 +139,30 @@ STATIC_URL = 'static/'
 # https://docs.djangoproject.com/en/5.0/ref/settings/#default-auto-field
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
+
+REST_FRAMEWORK = {
+    'EXCEPTION_HANDLER': 'conta_corrente.exception.api_exception_handler'
+}
+APPEND_SLASH = False
+
+# LOGGING = {
+#     'version': 1,
+#     'filters': {
+#         'require_debug_true': {
+#             '()': 'django.utils.log.RequireDebugTrue',
+#         }
+#     },
+#     'handlers': {
+#         'console': {
+#             'level': 'DEBUG',
+#             'filters': ['require_debug_true'],
+#             'class': 'logging.StreamHandler',
+#         }
+#     },
+#     'loggers': {
+#         'django.db.backends': {
+#             'level': 'DEBUG',
+#             'handlers': ['console'],
+#         }
+#     }
+# }

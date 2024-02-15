@@ -7,23 +7,23 @@ services:
     environment:
       - DATABASE_HOST=db
       - REDIS_HOST=redis
-    image: julioriffel/rinha_backend_django:latest
+#    image: julioriffel/rinha_backend_django:latest
+    build: .
     entrypoint: python -m gunicorn rinha_backend.asgi:application --workers 2 --worker-class uvicorn.workers.UvicornWorker --bind 0.0.0.0:8000
     ports:
       - "8081:8000"
-  #    deploy:
-  #      resources:
-  #        limits:
-  #          cpus: "0.4"
-  #          memory: "160MB"
+    depends_on:
+      - redis
+      - db
+    deploy:
+      resources:
+        limits:
+#          cpus: "1.5"
+          memory: "150MB"
 
   api02:
-    # Essa sintaxe reusa o que foi declarado em 'api01'.
     <<: *api
     hostname: api02
-    environment:
-      - DATABASE_HOST=db
-      - REDIS_HOST=redis
     ports:
       - "8082:8000"
 
@@ -35,13 +35,12 @@ services:
       - api01
       - api02
     ports:
-      # Obrigatório expor/usar a porta 9999 no load balancer!
       - "9999:9999"
-  #    deploy:
-  #      resources:
-  #        limits:
-  #          cpus: "0.1"
-  #          memory: "20MB"
+    deploy:
+      resources:
+        limits:
+#          cpus: "0.17"
+          memory: "25MB"
 
   db:
     image: postgres:latest
@@ -54,21 +53,22 @@ services:
       - "5432:5432"
     volumes:
       - ./script.sql:/docker-entrypoint-initdb.d/script.sql
-  #    deploy:
-  #      resources:
-  #        limits:
-  #          cpus: "0.7"
-  #          memory: "210MB"
+    deploy:
+      resources:
+        limits:
+#          cpus: "0.5"
+          memory: "200MB"
+
   redis:
-    image: redis:7.2.4-alpine3.19
+    image: redis:latest
     hostname: redis
     ports:
       - "6379:6379"
-#    deploy:
-#      resources:
-#        limits:
-#          cpus: "0.1"
-#          memory: 10MB
+    deploy:
+      resources:
+        limits:
+#          cpus: "0.05"
+          memory: "25MB"
 
 networks:
   default:

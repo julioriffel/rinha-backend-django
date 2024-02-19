@@ -44,7 +44,7 @@ class ExtratoSerializer(serializers.Serializer):
     ultimas_transacoes = serializers.SerializerMethodField(read_only=True)
 
     def get_ultimas_transacoes(self, obj):
-        transactions = Transacao.objects.all()[:10]
+        transactions = Transacao.objects.filter(cliente_id=obj.id)[:10]
         return TrasacaoExtratoSerializer(transactions, source='transactions', many=True, read_only=True).data
 
     def get_saldo(self, obj):

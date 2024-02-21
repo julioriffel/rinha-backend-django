@@ -5,7 +5,7 @@ services:
   api01: &api
     hostname: api01
     environment:
-      - DATABASE_HOST=db
+      - DATABASE_HOST=pgbouncer
       - REDIS_HOST=redis
 #    image: julioriffel/rinha_backend_django:latest
     build: .
@@ -18,7 +18,7 @@ services:
     deploy:
       resources:
         limits:
-#          cpus: "1.5"
+#          cpus: "0.6"
           memory: "150MB"
 
   api02:
@@ -43,22 +43,34 @@ services:
           memory: "25MB"
 
   db:
-    image: postgres:latest
-    hostname: db
+    image: postgres:13.10-alpine
     environment:
-      - POSTGRES_PASSWORD=123
-      - POSTGRES_USER=admin
-      - POSTGRES_DB=rinha
-    ports:
-      - "5432:5432"
+      - POSTGRES_PASSWORD=postgres
     volumes:
-      - ./script.sql:/docker-entrypoint-initdb.d/script.sql
+          - ./script.sql:/docker-entrypoint-initdb.d/script.sql
     command: ["-c", "shared_buffers=128MB", "-c", "synchronous_commit=off", "-c", "fsync=off", "-c", "full_page_writes=off"]
     deploy:
       resources:
         limits:
+#          cpus: "0.2"
+          memory: "175MB"
+
+  pgbouncer:
+    image: edoburu/pgbouncer:latest
+    env_file:
+      - ./.env
+    environment:
+      DATABASE_URL: "${POSTGRES_DATABASE_URL}"
+    ports:
+      - "5432:5432"
+    depends_on:
+      - db
+    deploy:
+      resources:
+        limits:
 #          cpus: "0.5"
-          memory: "200MB"
+#          cpus: "0.1"
+          memory: "25MB"
 
   redis:
     image: redis:latest
@@ -68,7 +80,7 @@ services:
     deploy:
       resources:
         limits:
-#          cpus: "0.05"
+#          cpus: "0.1"
           memory: "25MB"
 
 networks:

@@ -93,13 +93,14 @@ WSGI_APPLICATION = 'rinha_backend.wsgi.application'
 DATABASES = {
     'default': {
         "ENGINE": "django.db.backends.postgresql",
-        'NAME': 'rinha',
-        'USER': 'admin',
-        'PASSWORD': '123',
+        'NAME': 'postgres',
+        'USER': 'postgres',
+        'PASSWORD': 'postgres',
         'HOST': DATABASE_HOST,
         'PORT': 5432,
     },
 }
+DATABASES['default']['DISABLE_SERVER_SIDE_CURSORS'] = True
 
 # Password validation
 # https://docs.djangoproject.com/en/5.0/ref/settings/#auth-password-validators

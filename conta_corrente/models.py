@@ -11,7 +11,14 @@ TIPO_CHOICE = [('c', 'Credit'), ('d', 'Debit')]
 
 class Cliente(models.Model):
     limite = models.PositiveIntegerField(default=0)
-    saldo = models.IntegerField(default=0)
+
+    @property
+    def saldo(self):
+        if self.id:
+            from conta_corrente.services import ClienteSaldo
+            return ClienteSaldo.get_saldo(self.id)
+        else:
+            return 0
 
 
 class Transacao(models.Model):

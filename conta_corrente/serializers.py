@@ -7,6 +7,7 @@ from django.utils.timezone import now
 from rest_framework import serializers
 
 from conta_corrente.models import Cliente, Transacao
+from conta_corrente.services import ClienteSaldo
 
 
 class ClienteSaldoSerializer(serializers.ModelSerializer):
@@ -16,9 +17,17 @@ class ClienteSaldoSerializer(serializers.ModelSerializer):
 
 
 class TrasacaoSerializer(serializers.ModelSerializer):
+    cliente = serializers.IntegerField(required=True)
+
     class Meta:
         model = Transacao
         fields = ['tipo', 'valor', 'descricao', 'cliente']
+
+    def validate_cliente(self, cliente):
+        cliente = ClienteSaldo.get_cliente(cliente)
+        if cliente is None:
+            raise serializers.ValidationError()
+        return cliente
 
 
 class TrasacaoExtratoSerializer(serializers.ModelSerializer):

@@ -32,7 +32,7 @@ class ClienteView(GenericViewSet):
     @action(detail=True, methods=['get'], url_path='extrato', url_name='extrato', name='Cliente - Extrato')
     def extrato(self, request, pk):
         try:
-            cliente = Cliente.objects.get(pk=pk)
+            cliente = ClienteSaldo.get_cliente(pk)
             cliente_serializer = ExtratoSerializer(cliente)
             return JsonResponse(cliente_serializer.data, status=200)
         except Cliente.DoesNotExist:

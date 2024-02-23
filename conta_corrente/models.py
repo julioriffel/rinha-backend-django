@@ -30,3 +30,12 @@ class Transacao(models.Model):
 
     class Meta:
         ordering = ('-id',)
+
+    @property
+    def to_dict(self):
+        return {
+            "valor": self.valor,
+            "tipo": self.tipo,
+            "descricao": self.descricao,
+            "realizada_em": str(self.realizada_em)
+        }

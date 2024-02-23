@@ -24,36 +24,40 @@ class ClienteSaldo:
         return f'cliente_limite_{client_id}'
 
     @classmethod
-    def get_cliente(cls, client_id):
+    def get_limite(cls, client_id) -> int:
         limite = cls.redis.get(cls.get_limite_key(client_id))
-        if limite is None:
-            limite = cls.limite_saldo(client_id)
+        if type(limite) is bytes:
+            return int(limite.decode('utf-8'))
+        else:
+            cliente = get_object_or_404(Cliente, id=client_id)
+            cls.set_limite(client_id, cliente.limite)
+            return cliente.limite
+
+    @classmethod
+    def set_limite(cls, client_id: int, limite: int) -> None:
+        cls.redis.set(cls.get_limite_key(client_id), limite)
+
+    @classmethod
+    def get_cliente(cls, client_id) -> Cliente:
+        limite = cls.get_limite(client_id)
         return Cliente(id=client_id, limite=limite)
 
     @classmethod
     def ajuste_saldo(cls, tipo, valor):
         if tipo == 'c':
             return valor
-        else:
+        elif tipo == 'd':
             return -valor
-
-    @classmethod
-    def limite_saldo(cls, client_id):
-        limite = cls.redis.get(cls.get_limite_key(client_id))
-        if limite:
-            return int(limite.decode('utf-8'))
-        if limite is None:
-            cliente = get_object_or_404(Cliente, id=client_id)
-            cls.redis.set(cls.get_limite_key(client_id), cliente.limite)
-            return cliente.limite
+        else:
+            raise Exception('Tipo')
 
     @classmethod
     def persistir_saldo(cls, client_id: int, valor: int):
-        with cls.redis.lock(f'cliente_saldo_lock_{client_id}', timeout=60):
-            limite = cls.limite_saldo(client_id)
+        with cls.redis.lock(f'cliente_saldo_lock_{client_id}', timeout=0.2):
+            limite = cls.get_limite(client_id)
 
             novo_saldo = cls.redis.incrby(cls.get_saldo_key(client_id), valor)
-            if novo_saldo < -limite:
+            if novo_saldo + limite < 0:
                 cls.redis.incrby(cls.get_saldo_key(client_id), -valor)
                 raise IntegrityError
             return novo_saldo, limite
@@ -61,17 +65,21 @@ class ClienteSaldo:
     @classmethod
     def increment_saldo(cls, cliente_id, tipo: str, valor: int):
         novo_saldo, limite = cls.persistir_saldo(cliente_id, cls.ajuste_saldo(tipo, valor))
-
         return {'saldo': novo_saldo, 'limite': limite}
 
     @classmethod
     def get_saldo(cls, client_id: int) -> int:
-        saldo = cls.redis.get(cls.get_saldo_key(client_id))
-        if saldo:
-            saldo = int(saldo.decode('utf-8'))
+        saldo = cls.get_saldo_redis(client_id)
         if saldo is None:
             saldo = cls.get_saldo_db(client_id)
         return saldo
+
+    @classmethod
+    def get_saldo_redis(cls, client_id):
+        with cls.redis.lock(f'cliente_saldo_lock_{client_id}', timeout=0.2):
+            saldo = cls.redis.get(cls.get_saldo_key(client_id))
+            if type(saldo) is bytes:
+                return int(saldo.decode('utf-8'))
 
     @classmethod
     def get_saldo_db(cls, client_id: int) -> int:

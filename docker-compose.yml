@@ -1,4 +1,4 @@
-version: "3.5"
+version: "3.8"
 
 services:
 
@@ -10,15 +10,18 @@ services:
       - REDIS_HOST=redis
     #    image: julioriffel/rinha_backend_django:latest
     build: .
-    entrypoint: python -m gunicorn rinha_backend.asgi:application --workers 3 --worker-class uvicorn.workers.UvicornWorker --bind 0.0.0.0:8000
+    entrypoint: python -m gunicorn rinha_backend.asgi:application --workers 2 --worker-class uvicorn.workers.UvicornWorker --bind 0.0.0.0:8000
     depends_on:
       - redis
       - db
     deploy:
       resources:
         limits:
-          #          cpus: "0.6"
-          memory: "150MB"
+          cpus: 0.6
+          memory: 150MB
+        reservations:
+          cpus: 0.6
+          memory: 150M
       replicas: 2
 
   nginx:
@@ -36,18 +39,18 @@ services:
           memory: "25MB"
 
   db:
-    image: postgres:latest
+    image: postgres:13-alpine
     environment:
       - POSTGRES_PASSWORD=postgres
       - POSTGRES_USER=postgres
       - POSTGRES_DB=postgres
     volumes:
-      - ./script.sql:/docker-entrypoint-initdb.d/script.sql
-    command: [ "-c", "shared_buffers=128MB", "-c", "synchronous_commit=off", "-c", "fsync=off", "-c", "full_page_writes=off" ]
+          - ./script.sql:/docker-entrypoint-initdb.d/script.sql
+    command: ["-c", "shared_buffers=128MB", "-c", "synchronous_commit=off", "-c", "fsync=off", "-c", "full_page_writes=off"]
     deploy:
       resources:
         limits:
-          #          cpus: "0.2"
+#          cpus: "0.2"
           memory: "175MB"
 
   pgbouncer:
@@ -64,6 +67,7 @@ services:
     deploy:
       resources:
         limits:
+#          cpus: "0.5"
 #          cpus: "0.1"
           memory: "25MB"
 

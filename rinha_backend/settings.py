@@ -53,7 +53,6 @@ INSTALLED_APPS = [
     # 'django.contrib.messages',
     # 'django.contrib.staticfiles',
     'conta_corrente.apps.ContaCorrenteConfig',
-    'rest_framework',
 ]
 
 MIDDLEWARE = [
@@ -67,23 +66,23 @@ MIDDLEWARE = [
 ]
 
 ROOT_URLCONF = 'rinha_backend.urls'
-
-TEMPLATES = [
-    {
-        'BACKEND': 'django.template.backends.django.DjangoTemplates',
-        'DIRS': [BASE_DIR / 'templates']
-        ,
-        'APP_DIRS': True,
-        'OPTIONS': {
-            'context_processors': [
-                'django.template.context_processors.debug',
-                'django.template.context_processors.request',
-                'django.contrib.auth.context_processors.auth',
-                'django.contrib.messages.context_processors.messages',
-            ],
-        },
-    },
-]
+TEMPLATES = []
+# TEMPLATES = [
+#     {
+#         'BACKEND': 'django.template.backends.django.DjangoTemplates',
+#         'DIRS': [BASE_DIR / 'templates']
+#         ,
+#         'APP_DIRS': True,
+#         # 'OPTIONS': {
+#         #     'context_processors': [
+#         #         'django.template.context_processors.debug',
+#         #         'django.template.context_processors.request',
+#         #         'django.contrib.auth.context_processors.auth',
+#         #         'django.contrib.messages.context_processors.messages',
+#         #     ],
+#         # },
+#     },
+# ]
 
 WSGI_APPLICATION = 'rinha_backend.wsgi.application'
 
@@ -133,7 +132,7 @@ LANGUAGE_CODE = 'en-us'
 
 TIME_ZONE = 'UTC'
 
-USE_I18N = True
+USE_I18N = False
 
 USE_TZ = True
 
@@ -147,20 +146,6 @@ STATIC_URL = 'static/'
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
-REST_FRAMEWORK = {
-    'DEFAULT_RENDERER_CLASSES': [
-        'rest_framework.renderers.JSONRenderer',
-    ],
-    'DEFAULT_PARSER_CLASSES': [
-        'rest_framework.parsers.JSONParser'
-    ],
-    'DEFAULT_AUTHENTICATION_CLASSES': [],
-    'DEFAULT_PERMISSION_CLASSES': [],
-    'EXCEPTION_HANDLER': 'conta_corrente.exception.api_exception_handler',
-    'UNAUTHENTICATED_USER': None,
-    'TEST_REQUEST_RENDERER_CLASSES': None,
-
-}
 APPEND_SLASH = False
 
 # LOGGING = {

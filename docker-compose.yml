@@ -2,57 +2,52 @@ version: "3.5"
 
 services:
 
-  api01: &api
-    hostname: api01
+  api:
+    expose:
+      - "8000"
     environment:
       - DATABASE_HOST=pgbouncer
       - REDIS_HOST=redis
-#    image: julioriffel/rinha_backend_django:latest
+    #    image: julioriffel/rinha_backend_django:latest
     build: .
-    entrypoint: python -m gunicorn rinha_backend.asgi:application --workers 2 --worker-class uvicorn.workers.UvicornWorker --bind 0.0.0.0:8000
-    ports:
-      - "8081:8000"
+    entrypoint: python -m gunicorn rinha_backend.asgi:application --workers 3 --worker-class uvicorn.workers.UvicornWorker --bind 0.0.0.0:8000
     depends_on:
       - redis
       - db
     deploy:
       resources:
         limits:
-#          cpus: "0.6"
+          #          cpus: "0.6"
           memory: "150MB"
-
-  api02:
-    <<: *api
-    hostname: api02
-    ports:
-      - "8082:8000"
+      replicas: 2
 
   nginx:
     image: nginx:latest
     volumes:
       - ./nginx.conf:/etc/nginx/nginx.conf:ro
     depends_on:
-      - api01
-      - api02
+      - api
     ports:
       - "9999:9999"
     deploy:
       resources:
         limits:
-#          cpus: "0.17"
+          #          cpus: "0.17"
           memory: "25MB"
 
   db:
-    image: postgres:13.10-alpine
+    image: postgres:latest
     environment:
       - POSTGRES_PASSWORD=postgres
+      - POSTGRES_USER=postgres
+      - POSTGRES_DB=postgres
     volumes:
-          - ./script.sql:/docker-entrypoint-initdb.d/script.sql
-    command: ["-c", "shared_buffers=128MB", "-c", "synchronous_commit=off", "-c", "fsync=off", "-c", "full_page_writes=off"]
+      - ./script.sql:/docker-entrypoint-initdb.d/script.sql
+    command: [ "-c", "shared_buffers=128MB", "-c", "synchronous_commit=off", "-c", "fsync=off", "-c", "full_page_writes=off" ]
     deploy:
       resources:
         limits:
-#          cpus: "0.2"
+          #          cpus: "0.2"
           memory: "175MB"
 
   pgbouncer:
@@ -61,6 +56,7 @@ services:
       - ./.env
     environment:
       DATABASE_URL: "${POSTGRES_DATABASE_URL}"
+      authType: scram-sha-256
     ports:
       - "5432:5432"
     depends_on:
@@ -68,7 +64,6 @@ services:
     deploy:
       resources:
         limits:
-#          cpus: "0.5"
 #          cpus: "0.1"
           memory: "25MB"
 

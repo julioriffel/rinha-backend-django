@@ -21,6 +21,12 @@ from pathlib import Path
 DATABASE_HOST = os.getenv('DATABASE_HOST')
 REDIS_HOST = os.getenv('REDIS_HOST')
 DEBUG_ENV = os.getenv('DEBUG')
+if DATABASE_HOST is None:
+    DATABASE_HOST = '127.0.0.1'
+
+if REDIS_HOST is None:
+    REDIS_HOST = '127.0.0.1'
+
 if DEBUG_ENV is None:
     DEBUG_ENV = False
 

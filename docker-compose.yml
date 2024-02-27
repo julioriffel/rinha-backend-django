@@ -17,9 +17,26 @@ services:
     deploy:
 #      resources:
 #        limits:
-#          cpus: "0.5"
-#          memory: "150MB"
+#          cpus: "0.64"
+#          memory: "165MB"
       replicas: 2
+
+  db:
+    image: postgres:16
+    environment:
+      - POSTGRES_PASSWORD=postgres
+      - POSTGRES_USER=postgres
+      - POSTGRES_DB=postgres
+      - POSTGRES_HOST_AUTH_METHOD=md5
+      - POSTGRES_INITDB_ARGS=--auth=md5
+    volumes:
+      - ./script.sql:/docker-entrypoint-initdb.d/script.sql
+    command: [ "-c", "shared_buffers=128MB", "-c", "synchronous_commit=off", "-c", "fsync=off", "-c", "full_page_writes=off" ]
+#    deploy:
+#      resources:
+#        limits:
+#          cpus: "0.06"
+#          memory: "165MB"
 
   nginx:
     image: nginx:latest
@@ -32,25 +49,8 @@ services:
 #    deploy:
 #      resources:
 #        limits:
-#          cpus: "0.1"
+#          cpus: "0.07"
 #          memory: "25MB"
-
-  db:
-    image: postgres:16
-    environment:
-      - POSTGRES_PASSWORD=postgres
-      - POSTGRES_USER=postgres
-      - POSTGRES_DB=postgres
-      - POSTGRES_HOST_AUTH_METHOD=md5
-      - POSTGRES_INITDB_ARGS=--auth=md5
-    volumes:
-          - ./script.sql:/docker-entrypoint-initdb.d/script.sql
-    command: ["-c", "shared_buffers=128MB", "-c", "synchronous_commit=off", "-c", "fsync=off", "-c", "full_page_writes=off"]
-#    deploy:
-#      resources:
-#        limits:
-#          cpus: "0.2"
-#          memory: "175MB"
 
   pgbouncer:
     image: edoburu/pgbouncer:latest
@@ -58,7 +58,6 @@ services:
       - ./.env
     environment:
       DATABASE_URL: "${POSTGRES_DATABASE_URL}"
-      authType: scram-sha-256
     ports:
       - "5432:5432"
     depends_on:
@@ -66,8 +65,8 @@ services:
 #    deploy:
 #      resources:
 #        limits:
-#          cpus: "0.1"
-#          memory: "25MB"
+#          cpus: "0.06"
+#          memory: "15MB"
 
   redis:
     image: redis:latest
@@ -77,8 +76,8 @@ services:
 #    deploy:
 #      resources:
 #        limits:
-#          cpus: "0.1"
-#          memory: "25MB"
+#          cpus: "0.05"
+#          memory: "15MB"
 
 networks:
   default:

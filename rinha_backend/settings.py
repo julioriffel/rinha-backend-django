@@ -103,6 +103,7 @@ DATABASES = {
         'PASSWORD': 'postgres',
         'HOST': DATABASE_HOST,
         'PORT': 5432,
+        'CONN_MAX_AGE': None
     },
 }
 DATABASES['default']['DISABLE_SERVER_SIDE_CURSORS'] = True

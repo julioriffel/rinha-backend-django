@@ -6,7 +6,7 @@
 from django.db import models
 from django.utils import timezone
 
-TIPO_CHOICE = [('c', 'Credit'), ('d', 'Debit')]
+
 
 
 class Cliente(models.Model):
@@ -22,8 +22,8 @@ class Cliente(models.Model):
 
 
 class Transacao(models.Model):
-    cliente = models.ForeignKey(Cliente, on_delete=models.CASCADE)
-    tipo = models.CharField(max_length=1, choices=TIPO_CHOICE)
+    cliente_id = models.IntegerField()
+    tipo = models.CharField(max_length=1)
     valor = models.PositiveIntegerField()
     descricao = models.CharField(max_length=10)
     realizada_em = models.DateTimeField(default=timezone.now)

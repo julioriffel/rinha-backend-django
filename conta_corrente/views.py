@@ -15,14 +15,14 @@ from conta_corrente.services import ClienteSaldo
 def transaction(request, client_id):
     try:
         if request.method == 'POST':
-            cliente = ClienteSaldo.get_cliente(client_id)
+            ClienteSaldo.get_cliente(client_id)
             data = json.loads(request.body)
             if len(data['descricao']) < 1 or len(data['descricao']) > 10:
                 raise Exception
             novo_saldo = ClienteSaldo.increment_saldo(client_id, data['tipo'], data['valor'])
-            transacao = Transacao(cliente=cliente, tipo=data['tipo'], valor=int(data['valor']),
+            Transacao.objects.create(cliente_id=client_id, tipo=data['tipo'], valor=int(data['valor']),
                                   descricao=data['descricao'])
-            transacao.save()
+
             return JsonResponse(novo_saldo, status=200)
     except Exception:
         return HttpResponse(status=422)

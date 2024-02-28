@@ -10,15 +10,15 @@ services:
       - REDIS_HOST=redis
     #    image: julioriffel/rinha_backend_django:latest
     build: .
-    entrypoint: python -m gunicorn rinha_backend.asgi:application --workers 2 --worker-class uvicorn.workers.UvicornWorker --bind 0.0.0.0:8000
+    entrypoint: python -m gunicorn rinha_backend.asgi:application --workers 4 --worker-class uvicorn.workers.UvicornWorker --bind 0.0.0.0:8000
     depends_on:
       - redis
       - db
     deploy:
-#      resources:
-#        limits:
-#          cpus: "0.64"
-#          memory: "165MB"
+      resources:
+        limits:
+          cpus: "0.65"
+          memory: "180MB"
       replicas: 2
 
   db:
@@ -27,16 +27,14 @@ services:
       - POSTGRES_PASSWORD=postgres
       - POSTGRES_USER=postgres
       - POSTGRES_DB=postgres
-      - POSTGRES_HOST_AUTH_METHOD=md5
-      - POSTGRES_INITDB_ARGS=--auth=md5
     volumes:
       - ./script.sql:/docker-entrypoint-initdb.d/script.sql
     command: [ "-c", "shared_buffers=128MB", "-c", "synchronous_commit=off", "-c", "fsync=off", "-c", "full_page_writes=off" ]
-#    deploy:
-#      resources:
-#        limits:
-#          cpus: "0.06"
-#          memory: "165MB"
+    deploy:
+      resources:
+        limits:
+          cpus: "0.06"
+          memory: "90MB"
 
   nginx:
     image: nginx:latest
@@ -46,40 +44,49 @@ services:
       - api
     ports:
       - "9999:9999"
-#    deploy:
-#      resources:
-#        limits:
-#          cpus: "0.07"
-#          memory: "25MB"
+    deploy:
+      resources:
+        limits:
+          cpus: "0.06"
+          memory: "65MB"
 
   pgbouncer:
     image: edoburu/pgbouncer:latest
-    env_file:
-      - ./.env
     environment:
-      DATABASE_URL: "${POSTGRES_DATABASE_URL}"
+      DATABASE_URL: "postgres://postgres:postgres@db:5432/postgres"
+      AUTH_TYPE: plain
+      ADMIN_USERS: postgres,dbuser
+      POOL_MODE: transaction
+      MAX_DB_CONNECTIONS: "100"
+      MAX_USER_CONNECTIONS: "1000"
+      DEFAULT_POOL_SIZE: "40"
+      MIN_POOL_SIZE: "40"
+      LOG_FILE: /dev/null
     ports:
       - "5432:5432"
     depends_on:
       - db
-#    deploy:
-#      resources:
-#        limits:
-#          cpus: "0.06"
-#          memory: "15MB"
+    volumes:
+      - ./pgbouncer.ini:/etc/pgbouncer/pgbouncer.ini:ro
+    deploy:
+      resources:
+        limits:
+          cpus: "0.05"
+          memory: "10MB"
+
 
   redis:
     image: redis:latest
     hostname: redis
     ports:
       - "6379:6379"
-#    deploy:
-#      resources:
-#        limits:
-#          cpus: "0.05"
-#          memory: "15MB"
+    deploy:
+      resources:
+        limits:
+          cpus: "0.07"
+          memory: "25MB"
 
 networks:
   default:
     driver: bridge
-    name: rinha-nginx-2024q1
+    name: rinha-django

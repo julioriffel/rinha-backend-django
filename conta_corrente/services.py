@@ -11,9 +11,10 @@ from django.shortcuts import get_object_or_404
 from conta_corrente.models import Cliente, Transacao
 from rinha_backend.redis import UtilsRedis
 
+redis = UtilsRedis.get_redis()
+
 
 class ClienteSaldo:
-    redis = UtilsRedis.get_redis()
 
     @classmethod
     def get_saldo_key(cls, client_id) -> str:
@@ -25,17 +26,17 @@ class ClienteSaldo:
 
     @classmethod
     def get_limite(cls, client_id) -> int:
-        limite = cls.redis.get(cls.get_limite_key(client_id))
-        if type(limite) is bytes:
+        try:
+            limite = redis.get(cls.get_limite_key(client_id))
             return int(limite.decode('utf-8'))
-        else:
+        except Exception:
             cliente = get_object_or_404(Cliente, id=client_id)
             cls.set_limite(client_id, cliente.limite)
             return cliente.limite
 
     @classmethod
     def set_limite(cls, client_id: int, limite: int) -> None:
-        cls.redis.set(cls.get_limite_key(client_id), limite)
+        redis.set(cls.get_limite_key(client_id), limite)
 
     @classmethod
     def get_cliente(cls, client_id) -> Cliente:
@@ -53,12 +54,12 @@ class ClienteSaldo:
 
     @classmethod
     def persistir_saldo(cls, client_id: int, valor: int):
-        with cls.redis.lock(f'cliente_saldo_lock_{client_id}', timeout=0.2):
+        with redis.lock(f'cliente_saldo_lock_{client_id}', timeout=0.2):
             limite = cls.get_limite(client_id)
 
-            novo_saldo = cls.redis.incrby(cls.get_saldo_key(client_id), valor)
+            novo_saldo = redis.incrby(cls.get_saldo_key(client_id), valor)
             if novo_saldo + limite < 0:
-                cls.redis.incrby(cls.get_saldo_key(client_id), -valor)
+                redis.incrby(cls.get_saldo_key(client_id), -valor)
                 raise IntegrityError
             return novo_saldo, limite
 
@@ -76,10 +77,12 @@ class ClienteSaldo:
 
     @classmethod
     def get_saldo_redis(cls, client_id):
-        with cls.redis.lock(f'cliente_saldo_lock_{client_id}', timeout=0.2):
-            saldo = cls.redis.get(cls.get_saldo_key(client_id))
-            if type(saldo) is bytes:
+        with redis.lock(f'cliente_saldo_lock_{client_id}', timeout=0.2):
+            try:
+                saldo = redis.get(cls.get_saldo_key(client_id))
                 return int(saldo.decode('utf-8'))
+            except Exception:
+                return None
 
     @classmethod
     def get_saldo_db(cls, client_id: int) -> int:
@@ -90,5 +93,5 @@ class ClienteSaldo:
              .filter(cliente_id=client_id)).first()
         if t is not None:
             valor = t.cred - t.deb
-        cls.redis.set(cls.get_saldo_key(client_id), valor)
+        redis.set(cls.get_saldo_key(client_id), valor)
         return valor

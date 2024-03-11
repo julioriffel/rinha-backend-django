@@ -17,7 +17,7 @@ services:
     deploy:
       resources:
         limits:
-          cpus: "0.645"
+          cpus: "0.61"
           memory: "180MB"
       replicas: 2
 
@@ -33,7 +33,7 @@ services:
     deploy:
       resources:
         limits:
-          cpus: "0.06"
+          cpus: "0.09"
           memory: "90MB"
 
   nginx:
@@ -47,7 +47,7 @@ services:
     deploy:
       resources:
         limits:
-          cpus: "0.06"
+          cpus: "0.08"
           memory: "65MB"
 
   pgbouncer:
@@ -71,7 +71,7 @@ services:
     deploy:
       resources:
         limits:
-          cpus: "0.05"
+          cpus: "0.07"
           memory: "10MB"
 
 
@@ -83,7 +83,7 @@ services:
     deploy:
       resources:
         limits:
-          cpus: "0.08"
+          cpus: "0.04"
           memory: "25MB"
 
 networks:

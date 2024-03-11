@@ -103,10 +103,10 @@ DATABASES = {
         'PASSWORD': 'postgres',
         'HOST': DATABASE_HOST,
         'PORT': 5432,
-        'CONN_MAX_AGE': None
+        'CONN_MAX_AGE': None,
+        'DISABLE_SERVER_SIDE_CURSORS': True,
     },
 }
-DATABASES['default']['DISABLE_SERVER_SIDE_CURSORS'] = True
 
 # Password validation
 # https://docs.djangoproject.com/en/5.0/ref/settings/#auth-password-validators

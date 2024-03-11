@@ -54,14 +54,14 @@ class ClienteSaldo:
 
     @classmethod
     def persistir_saldo(cls, client_id: int, valor: int):
-        with redis.lock(f'cliente_saldo_lock_{client_id}', timeout=0.2):
-            limite = cls.get_limite(client_id)
 
-            novo_saldo = redis.incrby(cls.get_saldo_key(client_id), valor)
-            if novo_saldo + limite < 0:
-                redis.incrby(cls.get_saldo_key(client_id), -valor)
-                raise IntegrityError
-            return novo_saldo, limite
+        limite = cls.get_limite(client_id)
+
+        if valor < 0 and valor + cls.get_saldo(client_id) + limite < 0:
+            raise IntegrityError
+        novo_saldo = redis.incrby(cls.get_saldo_key(client_id), valor)
+
+        return novo_saldo, limite
 
     @classmethod
     def increment_saldo(cls, cliente_id, tipo: str, valor: int):
@@ -77,12 +77,11 @@ class ClienteSaldo:
 
     @classmethod
     def get_saldo_redis(cls, client_id):
-        with redis.lock(f'cliente_saldo_lock_{client_id}', timeout=0.2):
-            try:
-                saldo = redis.get(cls.get_saldo_key(client_id))
-                return int(saldo.decode('utf-8'))
-            except Exception:
-                return None
+        try:
+            saldo = redis.get(cls.get_saldo_key(client_id))
+            return int(saldo.decode('utf-8'))
+        except Exception:
+            return None
 
     @classmethod
     def get_saldo_db(cls, client_id: int) -> int:
